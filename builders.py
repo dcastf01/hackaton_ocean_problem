@@ -6,19 +6,21 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 from pytorch_lightning.plugins import DDPPlugin
+from torchvision import transforms
+from torchvision.transforms.autoaugment import _get_transforms
 from lit_classifier import LitClassifier
 from callbacks import  SplitDatasetWithKFoldStrategy
 from datamodule import DataModule
-from config import CONFIG, Dataset,TargetModel
-
+from config import CONFIG, Dataset,TargetModel,AvailableTransforms
+from timm.data.transforms_factory import transforms_imagenet_train
 
 def build_dataset(root_path:str,dataset_name:str=CONFIG.dataset_name,
-                  batch_size:int=CONFIG.batch_size):
+                  batch_size:int=CONFIG.batch_size,transforms=None):
     
     
     dataset_enum=Dataset[dataset_name]
-
     data_module=DataModule(data_dir=os.path.join(root_path,dataset_enum.value),
+                           transforms_fn=transforms,
                                             batch_size=batch_size,
                                             dataset=dataset_enum,
                                             num_workers=CONFIG.NUM_WORKERS,
@@ -26,6 +28,26 @@ def build_dataset(root_path:str,dataset_name:str=CONFIG.dataset_name,
     data_module.setup()
     return data_module
 
+def get_transforms(transforms_name:str):
+    transforms_name=AvailableTransforms[transforms_name]
+    transformer_string=transforms_name.name
+    splitter_transformer=transformer_string.split("_")
+    img_size=int(splitter_transformer[0][1:])
+    hflip=float(splitter_transformer[1])/100
+    vflip=float(splitter_transformer[2])/100
+    color_jitter=float(splitter_transformer[3])/100
+    auto_augment=str(splitter_transformer[4])
+    if transforms_name==AvailableTransforms.p448_50_50_40_rand:
+        transform=transforms_imagenet_train(
+            img_size=img_size,
+            hflip=hflip,
+            vflip=vflip,
+            color_jitter=color_jitter,
+            auto_augment=auto_augment,  
+        )
+
+    
+    return transform
 def get_callbacks(config:CONFIG,dm,only_train_and_test=False):
     #callbacks
     

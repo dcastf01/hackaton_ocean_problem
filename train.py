@@ -13,7 +13,7 @@ import torch
 from pytorch_lightning.loggers import WandbLogger
 import torchmetrics
 import wandb
-from builders import build_dataset, get_callbacks, get_trainer,get_system
+from builders import build_dataset, get_callbacks, get_trainer,get_system,get_transforms
 from config import CONFIG, create_config_dict
 import pandas as pd
 
@@ -51,8 +51,9 @@ def apply_train_test():
                     )
     
     config =wandb.config
-    
+    transforms=get_transforms(transforms_name=config.transforms_name)
     data_module=build_dataset(root_path=config.root_path,
+                              transforms=transforms,
                               dataset_name=config.dataset_name,
                               batch_size=config.batch_size
                               )

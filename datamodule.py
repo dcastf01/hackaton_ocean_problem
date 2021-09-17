@@ -7,7 +7,6 @@ from torch.utils.data import DataLoader, random_split
 from loaders import FondosLoader
 from config import Dataset
 # from loaders import #not implemented
-from torchvision import transforms
 from PIL import Image
 import os
 from timm.data.constants import IMAGENET_DEFAULT_MEAN,IMAGENET_DEFAULT_STD
@@ -29,8 +28,8 @@ class DataModule(LightningDataModule):
                  pin_memory:bool,
                  dataset:Dataset,
                  train_val_test_split_percentage:Tuple[float,float,float]=(0.7,0.3,0.0),
-                 input_size=None
-                 
+                 input_size=None,
+                 transforms_fn=None
                  
                  ):
         
@@ -45,6 +44,7 @@ class DataModule(LightningDataModule):
         self.input_size=input_size
         self.get_dataset()
         
+        self.transforms=transforms_fn
 
     def get_dataset(self):
         
@@ -53,22 +53,16 @@ class DataModule(LightningDataModule):
             NotImplementedError
             # self.dataset=
             # self.in_chans=3
-            if self.input_size is None:
-                self.input_size=None
+            # if self.input_size is None:
+                # self.input_size=None
             
         elif self.dataset_enum == Dataset.fondos:
             self.dataset=FondosLoader
             self.in_chans=3
-            if self.input_size is None:
-                self.input_size=600
+            # if self.input_size is None:
+                # self.input_size=448
                 
     
-        self.transform=transforms.Compose([
-                                    transforms.Resize((self.input_size,self.input_size), Image.BILINEAR),
-                                    transforms.ToTensor(),
-                                    transforms.Normalize(mean=[IMAGENET_DEFAULT_MEAN[0],IMAGENET_DEFAULT_MEAN[1],IMAGENET_DEFAULT_MEAN[2]],
-                                                         std=[IMAGENET_DEFAULT_STD[0],IMAGENET_DEFAULT_STD[1],IMAGENET_DEFAULT_STD[2]])]
-            )
     def prepare_data(self):
      
         
@@ -77,7 +71,7 @@ class DataModule(LightningDataModule):
     def setup(self,stage=None):
         """Load data. Set variables: self.data_train, self.data_val, self.data_test."""
         fulldataset = self.dataset(root=self.data_dir,
-                                   transform=self.transform)
+                                   transform=self.transforms)
         train_val_test_split= [round(split*len(fulldataset)) for split in self.train_val_test_split_percentage]
         if not sum(train_val_test_split)==len(fulldataset):
             train_val_test_split[0]+=1
