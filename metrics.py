@@ -1,27 +1,22 @@
 import torch
 import torchmetrics
-from torchmetrics import MetricCollection,MeanAbsoluteError , MeanSquaredError,SpearmanCorrcoef,PearsonCorrcoef,Accuracy
+from torchmetrics import MetricCollection,Recall,Accuracy
 
-def get_metrics_collections_base(prefix,is_regressor:bool=True
+def get_metrics_collections_base(prefix,num_classes
                             # device="cuda" if torch.cuda.is_available() else "cpu",
                             
                             ):
-    if is_regressor:
-        metrics = MetricCollection(
-                {
-                    "MeanAbsoluteError":MeanAbsoluteError(),
-                    "MeanSquaredError":MeanSquaredError(),
-                    "SpearmanCorrcoef":SpearmanCorrcoef(),
-                    "PearsonCorrcoef":PearsonCorrcoef()          
-                },
-                prefix=prefix
-                )
-    else:
-         metrics = MetricCollection(
-            {
-                "Accuracy":Accuracy(),
-                "Top_3":Accuracy(top_k=3),
-            },
-            prefix=prefix
-            )
+    
+    metrics = MetricCollection(
+    {
+        "Accuracy":Accuracy(),
+        "Top_3":Accuracy(top_k=3),
+        
+    },
+    prefix=prefix
+             )
+    if num_classes is not None:
+        
+        MetricCollection({"Recall": Recall(num_classes)})
+        
     return metrics

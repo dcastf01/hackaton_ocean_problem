@@ -8,7 +8,7 @@ from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 from pytorch_lightning.plugins import DDPPlugin
 from torchvision import transforms
 from torchvision.transforms.autoaugment import _get_transforms
-from lit_classifier import LitClassifier
+from lit_classifier import LitClassifier,LitClassifierTwoInOne
 from callbacks import  SplitDatasetWithKFoldStrategy
 from datamodule import DataModule
 from config import CONFIG, Dataset,TargetModel,AvailableTransforms
@@ -19,7 +19,9 @@ def build_dataset(root_path:str,dataset_name:str=CONFIG.dataset_name,
     
     
     dataset_enum=Dataset[dataset_name]
-    data_module=DataModule(data_dir=os.path.join(root_path,dataset_enum.value),
+    data_module=DataModule(
+        root_path=root_path,
+        data_dir=dataset_enum.value,
                            transform_fn_train=transform_fn_train,
                            transform_fn_val=transform_fn_val,
                                             batch_size=batch_size,
@@ -40,10 +42,14 @@ def get_transforms(transforms_name:str):
     auto_augment=str(splitter_transformer[4])
     if auto_augment=="none":
         auto_augment=None
-    if transforms_name in [AvailableTransforms.p448_50_50_40_rand,
-                           AvailableTransforms.p448_50_0_0_rand,
-                           AvailableTransforms.p448_50_50_40_augmix,
-                           AvailableTransforms.p600_50_0_40_none]:
+    if transforms_name in AvailableTransforms:
+    # [
+
+        # AvailableTransforms.p448_50_50_40_rand,
+        #                    AvailableTransforms.p448_50_0_0_rand,
+        #                    AvailableTransforms.p448_50_50_40_augmix,
+        #                    AvailableTransforms.p600_50_0_40_none
+                        #    ]:
         transform_train=transforms_imagenet_train(
             img_size=img_size,
             hflip=hflip,
@@ -54,14 +60,15 @@ def get_transforms(transforms_name:str):
         transform_val=transforms_imagenet_eval(
             img_size=img_size,
         )
-    
+    else:
+        raise NotImplementedError
     return transform_train,transform_val
 def get_callbacks(config:CONFIG,dm,only_train_and_test=False):
     #callbacks
     
     early_stopping=EarlyStopping(monitor='_val_loss',
                                  mode="min",
-                                patience=10,
+                                patience=5,
                                  verbose=True,
                                  check_finite =True
                                  )
@@ -87,28 +94,30 @@ def get_callbacks(config:CONFIG,dm,only_train_and_test=False):
                                                     only_train_and_test=only_train_and_test)
 
         callbacks=[
-            # grad_cam,
             learning_rate_monitor,
-            # early_stopping,
+            early_stopping,
             split_dataset,
                 ]
     
     else:
         callbacks=[
-            # grad_cam,
            
             learning_rate_monitor,
-            # early_stopping,
+            early_stopping,
             
                 ]
   
     return callbacks
 
-def get_system(config,dm,num_fold=0,num_repeat=0):
+def get_system(config:CONFIG,dm,num_fold=0,num_repeat=0):
     dataset_name=config.dataset_name
     dataset_enum=Dataset[dataset_name]
-    num_class=len(dm.data_train.dataset.classes)
-    if config.target_name==TargetModel.classifier_model.name:
+    if hasattr(dm.data_train.dataset,"datasets"):
+        num_class=[len(dm.data_train.dataset.datasets[0].classes),len(dm.data_train.dataset.datasets[1].classes)]
+    else:
+        
+        num_class=len(dm.data_train.dataset.classes)
+    if config.target_name==TargetModel.classifier_model_standar.name:
         
         system=LitClassifier(
             model_name=config.experiment_name,
@@ -119,8 +128,20 @@ def get_system(config,dm,num_fold=0,num_repeat=0):
             num_fold=num_fold,
             num_repeat=num_repeat
                              )
-   
+    
+    elif config.target_name==TargetModel.classifier_model_two_in_one.name and dataset_enum==Dataset.elementos_and_fondos:
+        system=LitClassifierTwoInOne(
+            model_name=config.experiment_name,
+            lr=config.lr,
+            optim=config.optim_name,
+            in_chans=dm.in_chans,
+            num_class=num_class,
+            num_fold=num_fold,
+            num_repeat=num_repeat
+                             )
+    else:
         
+        raise "algo raro, probablemente seleccionaste los dos dataset"   
     return system
 
 def get_trainer(wandb_logger,callbacks,config):

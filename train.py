@@ -33,6 +33,7 @@ def apply_train_test():
             result=trainer.test(system,test_dataloaders=data_module.test_dataloader())
         
             return result
+        
         return result
 
         
@@ -42,7 +43,7 @@ def apply_train_test():
     config_dict["id_group"]=init_id
     wandb.init(
         project='hackaton_ocean',
-                entity='dcastf01',
+                entity='hackaton_ocean',
                 config=config_dict)
     
     wandb_logger = WandbLogger( 
@@ -77,7 +78,7 @@ def apply_train_test():
                     config_dict["id_group"]=init_id
                     wandb.init(
                         project='hackaton_ocean',
-                                entity='dcastf01',
+                                entity='hackaton_ocean',
                                 config=config_dict)
                     
                     wandb_logger = WandbLogger( 

@@ -5,10 +5,8 @@ from typing import Union
 
 from dataclasses import dataclass,asdict
 
-from torchvision import transforms
 
 ROOT_WORKSPACE: str=""
-
 class ModelsAvailable(Enum):
     resnet50="resnet50"
     densenet121="densenet121"
@@ -17,15 +15,16 @@ class ModelsAvailable(Enum):
     googlenet="googlenet"
     tf_efficientnet_b0="tf_efficientnet_b0"
     tf_efficientnet_b4="tf_efficientnet_b4"
+    tf_efficientnet_b4_ns="tf_efficientnet_b4_ns"
     tf_efficientnet_b7="tf_efficientnet_b7"
     
 class Dataset (Enum):
     elementos_presentes="ocean_elements"
     fondos="ocean_v2"
-  
+    elementos_and_fondos="son ambos dataset"
 class TargetModel(Enum):
-    regresor_model=1
-    classifier_model=2   
+    classifier_model_two_in_one=1
+    classifier_model_standar=2   
     
 class Optim(Enum):
     adam=1
@@ -38,20 +37,21 @@ class AvailableTransforms(Enum):
     p448_50_0_0_rand=2
     p448_50_50_40_augmix=3
     p600_50_0_40_none=4
+    p448_50_30_40_rand=5
     
 @dataclass
 class CONFIG(object):
     
-    experiment=ModelsAvailable.tf_efficientnet_b4
+    experiment=ModelsAvailable.tf_efficientnet_b4_ns
     experiment_name:str=experiment.name
     # experiment_net:str=experiment.value
     PRETRAINED_MODEL:bool=True
     only_train_head:bool=False #solo se entrena el head
     
-    target_model=TargetModel.classifier_model
+    target_model=TargetModel.classifier_model_standar
     target_name:str=target_model.name
     
-    transforms_target=AvailableTransforms.p448_50_50_40_rand
+    transforms_target=AvailableTransforms.p448_50_30_40_rand
     transforms_name:str=transforms_target.name
     #torch config
     batch_size:int = 50
@@ -62,8 +62,6 @@ class CONFIG(object):
     optim_name:str=optim.name
     lr:float = 0.01 #cambiar segun modelo y benchmark
     AUTO_LR :bool= False
-
-
 
     num_fold:int=0 #if 0 is not kfold train 
     repetitions:int=1
@@ -81,8 +79,8 @@ class CONFIG(object):
     ##data
     root_path:str=r"/home/dcast/hackaton_ocean_problem/data"
     
-    gpu0:bool=True  
-    gpu1:bool=False
+    gpu0:bool=False  
+    gpu1:bool=True
     notes:str="final experiments"
     
     version:int=3
