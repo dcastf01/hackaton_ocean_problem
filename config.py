@@ -17,6 +17,7 @@ class ModelsAvailable(Enum):
     tf_efficientnet_b4="tf_efficientnet_b4"
     tf_efficientnet_b4_ns="tf_efficientnet_b4_ns"
     tf_efficientnet_b7="tf_efficientnet_b7"
+    xcitS="checkpoints/xcit_small_24_p16_224_dist.pth"
     
 class Dataset (Enum):
     elementos_presentes="ocean_elements"
@@ -38,6 +39,7 @@ class AvailableTransforms(Enum):
     p448_50_50_40_augmix=3
     p600_50_0_40_none=4
     p448_50_30_40_rand=5
+    p448_50_30_70_rand=6
     
 @dataclass
 class CONFIG(object):
@@ -54,8 +56,8 @@ class CONFIG(object):
     transforms_target=AvailableTransforms.p448_50_30_40_rand
     transforms_name:str=transforms_target.name
     #torch config
-    batch_size:int = 50
-    dataset=Dataset.elementos_presentes
+    batch_size:int = 49
+    dataset=Dataset.fondos
     dataset_name:str=dataset.name
     precision_compute:int=16
     optim=Optim.adam
@@ -71,11 +73,12 @@ class CONFIG(object):
     SEED:int=1
     # IMG_SIZE:int=28
     NUM_EPOCHS :int= 50
-    LOAD_MODEL :bool= True
-    SAVE_MODEL :bool= True
+    LOAD_MODEL :bool= False
+    SAVE_MODEL :bool= False
     PATH_CHECKPOINT: str= os.path.join(ROOT_WORKSPACE,"/model/checkpoint")
 
-    
+    callback_plot_latent_space:bool=False
+    callback_matrix_wandb:bool=False
     ##data
     root_path:str=r"/home/dcast/hackaton_ocean_problem/data"
     

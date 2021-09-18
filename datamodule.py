@@ -67,6 +67,7 @@ class DataModule(LightningDataModule):
         elif self.dataset_enum==Dataset.elementos_and_fondos:
             self.dataset=[FondosLoaderToCombine,ElementsLoaderToCombine]
             self.datasets_enums=[Dataset.fondos,Dataset.elementos_presentes]
+            
     def prepare_data(self):
      
         
@@ -96,6 +97,7 @@ class DataModule(LightningDataModule):
             self.data_train, self.data_val, self.data_test = random_split(
                 self.fulldataset, train_val_test_split
             )
+            self.sampler=None
             self.data_val.dataset.transform=self.transform_fn_val
         else:
             
@@ -111,6 +113,7 @@ class DataModule(LightningDataModule):
             # class_sample_count = torch.tensor(
             # [(target == t).sum() for t in torch.unique(target, sorted=True)])
             self.sampler=ImbalancedDatasetSampler(self.data_train)
+
             self.data_val.dataset.transform=self.transform_fn_val
 
     def train_dataloader(self):

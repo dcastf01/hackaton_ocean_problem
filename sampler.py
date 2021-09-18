@@ -29,7 +29,7 @@ class ImbalancedDatasetSampler(torch.utils.data.sampler.Sampler):
         df = pd.DataFrame()
         df["label"] = self._get_labels(dataset)
         df=df.head(len(self.indices))
-        print(df.head())
+        # print(df.head())
         df.index = self.indices
         df = df.sort_index()
 

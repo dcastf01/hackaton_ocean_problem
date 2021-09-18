@@ -9,7 +9,7 @@ from pytorch_lightning.plugins import DDPPlugin
 from torchvision import transforms
 from torchvision.transforms.autoaugment import _get_transforms
 from lit_classifier import LitClassifier,LitClassifierTwoInOne
-from callbacks import  SplitDatasetWithKFoldStrategy
+from callbacks import  SplitDatasetWithKFoldStrategy,ConfusionMatrix,PlotLatentSpace
 from datamodule import DataModule
 from config import CONFIG, Dataset,TargetModel,AvailableTransforms
 from timm.data.transforms_factory import transforms_imagenet_train,transforms_imagenet_eval
@@ -68,7 +68,7 @@ def get_callbacks(config:CONFIG,dm,only_train_and_test=False):
     
     early_stopping=EarlyStopping(monitor='_val_loss',
                                  mode="min",
-                                patience=5,
+                                patience=10,
                                  verbose=True,
                                  check_finite =True
                                  )
@@ -97,6 +97,7 @@ def get_callbacks(config:CONFIG,dm,only_train_and_test=False):
             learning_rate_monitor,
             early_stopping,
             split_dataset,
+            
                 ]
     
     else:
@@ -106,7 +107,14 @@ def get_callbacks(config:CONFIG,dm,only_train_and_test=False):
             early_stopping,
             
                 ]
-  
+    
+    if config.callback_plot_latent_space:
+        plot_latent_space=PlotLatentSpace(dataloader=dm.val_dataloader())
+        callbacks.append(plot_latent_space)
+    if config.callback_matrix_wandb:
+        cf_matrix_wandb=ConfusionMatrix(dataloader=dm.val_dataloader())
+        callbacks.append(cf_matrix_wandb)
+        
     return callbacks
 
 def get_system(config:CONFIG,dm,num_fold=0,num_repeat=0):

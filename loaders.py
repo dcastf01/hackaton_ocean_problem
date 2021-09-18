@@ -50,6 +50,7 @@ class ElementsLoaderToCombine(Loader):
             tuple: (sample, target) where target is class_index of the target class.
         """
         path, target = self.samples[index]
+        target=target+1
         sample = self.loader(path)
         if self.transform is not None:
             sample = self.transform(sample)
@@ -73,6 +74,7 @@ class  FondosLoaderToCombine(Loader):
             tuple: (sample, target) where target is class_index of the target class.
         """
         path, target = self.samples[index]
+        target=target+1
         sample = self.loader(path)
         if self.transform is not None:
             sample = self.transform(sample)
@@ -80,18 +82,3 @@ class  FondosLoaderToCombine(Loader):
             target = self.target_transform(target)
 
         return sample, target,0
-class ConcatBothDataset(ConcatDataset):
-    def __init__(self, datasets: Iterable[Dataset]) -> None:
-        super().__init__(datasets)
-        
-    def __getitem__(self, idx):
-        if idx < 0:
-            if -idx > len(self):
-                raise ValueError("absolute value of index should not exceed dataset length")
-            idx = len(self) + idx
-        dataset_idx = bisect.bisect_right(self.cumulative_sizes, idx)
-        if dataset_idx == 0:
-            sample_idx = idx
-        else:
-            sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
-        return self.datasets[dataset_idx][sample_idx]

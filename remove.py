@@ -1,31 +1,24 @@
+import torch.nn as nn
 import torch
+import torch.nn.functional as F
 from torch.utils.data.sampler import WeightedRandomSampler
 from torch.utils.data.dataloader import DataLoader
+target=torch.tensor(([3], [3],[3]),dtype=torch.long)
 
-# Create dummy data with class imbalance 99 to 1
-numDataPoints = 1000
-data_dim = 5
-bs = 100
-data = torch.randn(numDataPoints, data_dim)
-target = torch.cat((torch.zeros(int(numDataPoints * 0.99), dtype=torch.long),
-                    torch.ones(int(numDataPoints * 0.01), dtype=torch.long)))
+input = torch.tensor([[1.,0.,0.,0.], [0.,0.,1.,0.],[0.,1.,0.,0.]],requires_grad=True)
+target=target.squeeze()
+# target = torch.empty(3, dtype=torch.long).random_(5)
+nClasses=4
+weights = torch.ones(nClasses)
+ignore_classes = torch.LongTensor([3])
+weights[ignore_classes] = 0.0
+loss = nn.CrossEntropyLoss(weights)
+# input = torch.randn(3, 5, requires_grad=True)
+# target = torch.empty(3, dtype=torch.long).random_(5)
 
-print('target train 0/1: {}/{}'.format(
-    (target == 0).sum(), (target == 1).sum()))
-
-# Compute samples weight (each sample should get its own weight)
-class_sample_count = torch.tensor(
-    [(target == t).sum() for t in torch.unique(target, sorted=True)])
-weight = 1. / class_sample_count.float()
-samples_weight = torch.tensor([weight[t] for t in target])
-
-# Create sampler, dataset, loader
-sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
-train_dataset = torch.utils.data.TensorDataset(data, target)
-train_loader = DataLoader(
-    train_dataset, batch_size=bs, num_workers=1, sampler=sampler)
-
-# Iterate DataLoader and check class balance for each batch
-for i, (x, y) in enumerate(train_loader):
-    print("batch index {}, 0/1: {}/{}".format(
-        i, (y == 0).sum(), (y == 1).sum()))
+output = loss(input, target)
+print(input)
+print(target)
+print(weights)
+print(output)
+# output.backward()
