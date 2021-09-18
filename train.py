@@ -51,9 +51,10 @@ def apply_train_test():
                     )
     
     config =wandb.config
-    transforms=get_transforms(transforms_name=config.transforms_name)
+    transform_fn_train,transform_fn_val=get_transforms(transforms_name=config.transforms_name)
     data_module=build_dataset(root_path=config.root_path,
-                              transforms=transforms,
+                              transform_fn_train=transform_fn_train,
+                              transform_fn_val=transform_fn_val,
                               dataset_name=config.dataset_name,
                               batch_size=config.batch_size
                               )

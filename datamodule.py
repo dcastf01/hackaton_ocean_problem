@@ -4,7 +4,7 @@ from typing import Tuple
 
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, random_split
-from loaders import FondosLoader
+from loaders import FondosLoader,ElementsLoader
 from config import Dataset
 # from loaders import #not implemented
 from PIL import Image
@@ -29,7 +29,8 @@ class DataModule(LightningDataModule):
                  dataset:Dataset,
                  train_val_test_split_percentage:Tuple[float,float,float]=(0.7,0.3,0.0),
                  input_size=None,
-                 transforms_fn=None
+                 transform_fn_train=None,
+                 transform_fn_val=None
                  
                  ):
         
@@ -44,13 +45,14 @@ class DataModule(LightningDataModule):
         self.input_size=input_size
         self.get_dataset()
         
-        self.transforms=transforms_fn
-
+        self.transform_fn_train=transform_fn_train
+        self.transform_fn_val=transform_fn_val
     def get_dataset(self):
         
         
         if self.dataset_enum == Dataset.elementos_presentes:
-            NotImplementedError
+            self.dataset=ElementsLoader
+            self.in_chans=3
             # self.dataset=
             # self.in_chans=3
             # if self.input_size is None:
@@ -71,13 +73,14 @@ class DataModule(LightningDataModule):
     def setup(self,stage=None):
         """Load data. Set variables: self.data_train, self.data_val, self.data_test."""
         fulldataset = self.dataset(root=self.data_dir,
-                                   transform=self.transforms)
+                                   transform=self.transform_fn_train)
         train_val_test_split= [round(split*len(fulldataset)) for split in self.train_val_test_split_percentage]
         if not sum(train_val_test_split)==len(fulldataset):
             train_val_test_split[0]+=1
         self.data_train, self.data_val, self.data_test = random_split(
             fulldataset, train_val_test_split
         )
+        self.data_val.dataset.transform=self.transform_fn_val
 
     def train_dataloader(self):
         return DataLoader(

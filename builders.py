@@ -12,15 +12,16 @@ from lit_classifier import LitClassifier
 from callbacks import  SplitDatasetWithKFoldStrategy
 from datamodule import DataModule
 from config import CONFIG, Dataset,TargetModel,AvailableTransforms
-from timm.data.transforms_factory import transforms_imagenet_train
+from timm.data.transforms_factory import transforms_imagenet_train,transforms_imagenet_eval
 
 def build_dataset(root_path:str,dataset_name:str=CONFIG.dataset_name,
-                  batch_size:int=CONFIG.batch_size,transforms=None):
+                  batch_size:int=CONFIG.batch_size,transform_fn_train=None,transform_fn_val=None):
     
     
     dataset_enum=Dataset[dataset_name]
     data_module=DataModule(data_dir=os.path.join(root_path,dataset_enum.value),
-                           transforms_fn=transforms,
+                           transform_fn_train=transform_fn_train,
+                           transform_fn_val=transform_fn_val,
                                             batch_size=batch_size,
                                             dataset=dataset_enum,
                                             num_workers=CONFIG.NUM_WORKERS,
@@ -37,17 +38,24 @@ def get_transforms(transforms_name:str):
     vflip=float(splitter_transformer[2])/100
     color_jitter=float(splitter_transformer[3])/100
     auto_augment=str(splitter_transformer[4])
-    if transforms_name==AvailableTransforms.p448_50_50_40_rand:
-        transform=transforms_imagenet_train(
+    if auto_augment=="none":
+        auto_augment=None
+    if transforms_name in [AvailableTransforms.p448_50_50_40_rand,
+                           AvailableTransforms.p448_50_0_0_rand,
+                           AvailableTransforms.p448_50_50_40_augmix,
+                           AvailableTransforms.p600_50_0_40_none]:
+        transform_train=transforms_imagenet_train(
             img_size=img_size,
             hflip=hflip,
             vflip=vflip,
             color_jitter=color_jitter,
             auto_augment=auto_augment,  
         )
-
+        transform_val=transforms_imagenet_eval(
+            img_size=img_size,
+        )
     
-    return transform
+    return transform_train,transform_val
 def get_callbacks(config:CONFIG,dm,only_train_and_test=False):
     #callbacks
     
@@ -99,6 +107,7 @@ def get_callbacks(config:CONFIG,dm,only_train_and_test=False):
 def get_system(config,dm,num_fold=0,num_repeat=0):
     dataset_name=config.dataset_name
     dataset_enum=Dataset[dataset_name]
+    num_class=len(dm.data_train.dataset.classes)
     if config.target_name==TargetModel.classifier_model.name:
         
         system=LitClassifier(
@@ -106,6 +115,7 @@ def get_system(config,dm,num_fold=0,num_repeat=0):
             lr=config.lr,
             optim=config.optim_name,
             in_chans=dm.in_chans,
+            num_class=num_class,
             num_fold=num_fold,
             num_repeat=num_repeat
                              )

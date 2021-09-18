@@ -27,3 +27,9 @@ class FondosLoader(Loader):
                  transform: Optional[Callable] = None, 
     ):
         super().__init__(root, transform=transform, )
+        
+class ElementsLoader(Loader):
+    def __init__(self, root: str, 
+                 transform: Optional[Callable] = None, 
+    ):
+        super().__init__(root, transform=transform, )

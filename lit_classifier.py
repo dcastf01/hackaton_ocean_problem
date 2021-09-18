@@ -14,6 +14,7 @@ class LitClassifier(LitSystem):
                  optim: str,
                  model_name:str,
                  in_chans:int,
+                 num_class:int,
                  num_fold:int,
                  num_repeat:int
                  ):
@@ -21,7 +22,7 @@ class LitClassifier(LitSystem):
         
         super().__init__(lr, optim=optim,is_regresor=False)
         extras=dict(in_chans=in_chans)
-        self.generate_model(model_name,in_chans)
+        self.generate_model(model_name,in_chans,num_class)
         # self.model=timm.create_model(model_name,pretrained=True,num_classes=10,**extras)
         self.criterion=torch.nn.CrossEntropyLoss()
         self.num_fold=num_fold
@@ -71,7 +72,7 @@ class LitClassifier(LitSystem):
         data_dict={"test_loss":loss,**metric_value}
         self.insert_each_metric_value_into_dict(data_dict,prefix="")
     
-    def generate_model(self,model_name:str,in_chans:int):
+    def generate_model(self,model_name:str,in_chans:int,num_class:int):
         
         if isinstance(model_name,str):
             model_enum=ModelsAvailable[model_name.lower()]
@@ -81,6 +82,6 @@ class LitClassifier(LitSystem):
             self.model=timm.create_model(
                                         model_enum.value,
                                         pretrained=True,
-                                        num_classes=10,
+                                        num_classes=num_class,
                                         **extras
                                         )
