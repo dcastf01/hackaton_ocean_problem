@@ -35,13 +35,16 @@ class AvailableTransforms(Enum):
     #imgsize_hflip_vflip_colorjitter_autoaugment
     
     p448_50_50_40_rand=1
+    p448_50_0_0_rand=2
+    p448_50_50_40_augmix=3
+    p600_50_0_40_none=4
     
 @dataclass
 class CONFIG(object):
     
     experiment=ModelsAvailable.tf_efficientnet_b4
     experiment_name:str=experiment.name
-    experiment_net:str=experiment.value
+    # experiment_net:str=experiment.value
     PRETRAINED_MODEL:bool=True
     only_train_head:bool=False #solo se entrena el head
     
@@ -51,8 +54,8 @@ class CONFIG(object):
     transforms_target=AvailableTransforms.p448_50_50_40_rand
     transforms_name:str=transforms_target.name
     #torch config
-    batch_size:int = 32
-    dataset=Dataset.fondos
+    batch_size:int = 50
+    dataset=Dataset.elementos_presentes
     dataset_name:str=dataset.name
     precision_compute:int=16
     optim=Optim.adam
@@ -78,11 +81,12 @@ class CONFIG(object):
     ##data
     root_path:str=r"/home/dcast/hackaton_ocean_problem/data"
     
-    gpu0:bool=False  
-    gpu1:bool=True
+    gpu0:bool=True  
+    gpu1:bool=False
     notes:str="final experiments"
     
-    version:int=2
+    version:int=3
+    #en la versión 3 se ha añadido un transform al dataset de validación ya que se usaba el de entrenamiento
     
 
 def create_config_dict(instance:CONFIG):
