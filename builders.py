@@ -7,7 +7,6 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 from pytorch_lightning.plugins import DDPPlugin
 from torchvision import transforms
-from torchvision.transforms.autoaugment import _get_transforms
 from lit_classifier import LitClassifier,LitClassifierTwoInOne
 from callbacks import  SplitDatasetWithKFoldStrategy,ConfusionMatrix,PlotLatentSpace
 from datamodule import DataModule
@@ -75,7 +74,8 @@ def get_callbacks(config:CONFIG,dm,only_train_and_test=False):
                                  )
 
     checkpoint_callback = ModelCheckpoint(
-        monitor='_val_loss',
+        # monitor='_val_loss',
+        monitor="_loss",
         dirpath=config.PATH_CHECKPOINT,
         filename= '-{epoch:02d}-{val_loss:.6f}',
         mode="min",

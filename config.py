@@ -16,6 +16,7 @@ class ModelsAvailable(Enum):
     tf_efficientnet_b0="tf_efficientnet_b0"
     tf_efficientnet_b4="tf_efficientnet_b4"
     tf_efficientnet_b4_ns="tf_efficientnet_b4_ns"
+    tf_efficientnet_b6_ns="tf_efficientnet_b6_ns"
     tf_efficientnet_b7="tf_efficientnet_b7"
     cait_m48_448="cait_m48_448"
     xcits="checkpoints/xcit_small_24_p16_224_dist.pth"
@@ -23,6 +24,8 @@ class ModelsAvailable(Enum):
     dino_vits8="dino_vits8" #pues batch de 6 como mucho
     vit_base_patch16_224_miil_in21k="vit_base_patch16_224_miil_in21k"
     vit_base_patch16_384="vit_base_patch16_384"
+    swin_large_patch4_window12_384="swin_large_patch4_window12_384"
+    tf_efficientnetv2_l_in21ft1k="tf_efficientnetv2_l_in21ft1k"
     
     
     
@@ -53,7 +56,7 @@ class AvailableTransforms(Enum):
 @dataclass
 class CONFIG(object):
     
-    experiment=ModelsAvailable.cait_m48_448
+    experiment=ModelsAvailable.tf_efficientnet_b4_ns
     experiment_name:str=experiment.name
     # experiment_net:str=experiment.value
     PRETRAINED_MODEL:bool=True
@@ -65,7 +68,7 @@ class CONFIG(object):
     transforms_target=AvailableTransforms.p448_50_30_40_rand
     transforms_name:str=transforms_target.name
     #torch config
-    batch_size:int = 25
+    batch_size:int = 40
     dataset=Dataset.elementos_presentes
     dataset_name:str=dataset.name
     precision_compute:int=16
@@ -74,7 +77,7 @@ class CONFIG(object):
     lr:float = 0.01 #cambiar segun modelo y benchmark
     AUTO_LR :bool= False
 
-    num_fold:int=0 #if 0 is not kfold train 
+    num_fold:int=4 #if 0 is not kfold train 
     repetitions:int=1
     
     # LAMBDA_IDENTITY = 0.0
@@ -87,14 +90,14 @@ class CONFIG(object):
     PATH_CHECKPOINT: str= os.path.join(ROOT_WORKSPACE,"/model/checkpoint")
     checkpoint_name:str=experiment.value
 
-    callback_plot_latent_space:bool=False
-    callback_matrix_wandb:bool=False
+    callback_plot_latent_space:bool=True
+    callback_matrix_wandb:bool=True
     ##data
     root_path:str=r"/home/dcast/hackaton_ocean_problem/data"
     
     gpu0:bool=False  
     gpu1:bool=True
-    notes:str=""
+    notes:str="modelo final"
     
     version:int=4
     #Iniciando el poner Dino
