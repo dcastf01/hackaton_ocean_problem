@@ -7,6 +7,8 @@ from config import  ModelsAvailable
 from lit_system import LitSystem
 from metrics import get_metrics_collections_base
 from timm.models.layers.classifier import create_classifier
+from image_classification.models import get_model
+from factory_model import FacebookModels
 class LitClassifier(LitSystem):
     
     def __init__(self,
@@ -64,7 +66,9 @@ class LitClassifier(LitSystem):
         
         if isinstance(model_name,str):
             model_enum=ModelsAvailable[model_name.lower()]
-            
+        # print(timm.list_models())
+        # print(timm.list_models(pretrained=True))
+        
         if model_enum.value in timm.list_models(pretrained=True) and isinstance(num_class,int)  :
             extras=dict(in_chans=in_chans)
             self.model=timm.create_model(
@@ -81,6 +85,12 @@ class LitClassifier(LitSystem):
                                         num_classes=0,
                                         **extras
                                         )
+        elif model_enum==ModelsAvailable.xcits:
+            self.model=get_model( "XciT","S",
+                                 pretrained="checkpoints/xcit_small_24_p16_224_dist.pth",
+                                 image_size=448)
+        elif model_enum.name[0:4]==ModelsAvailable.dino_xcit_medium_24_p16.name[0:4]:
+            self.model=FacebookModels(num_class=num_class,name_model=model_enum.value)
 class LitClassifierTwoInOne(LitClassifier):
     
     def __init__(self, 
@@ -101,8 +111,8 @@ class LitClassifierTwoInOne(LitClassifier):
         weights_0 = torch.ones(5)
         weights_1 = torch.ones(6)
         ignore_classes = torch.LongTensor([0])
-        weights_0[ignore_classes] = 0.0
-        weights_1[ignore_classes] = 0.0
+        weights_0[ignore_classes] = 0.5
+        weights_1[ignore_classes] = 0.5
         self.criterion_0=torch.nn.CrossEntropyLoss(weight=weights_0)
         self.criterion_1=torch.nn.CrossEntropyLoss(weight=weights_1)
         
@@ -126,7 +136,7 @@ class LitClassifierTwoInOne(LitClassifier):
         
         x,labels,dataset_id=batch
         preds_0,preds_1=self.forward(x)
-        
+        #lo siguiente será realizar un clasificador binario
         tensor_template_0=torch.zeros(labels.shape[0]).to(self.device)
         tensor_label_useless_0=torch.full(labels.shape,0).to(self.device)
         labels0=torch.where(dataset_id==tensor_template_0,labels,tensor_label_useless_0)
@@ -140,7 +150,7 @@ class LitClassifierTwoInOne(LitClassifier):
         loss_1=self.criterion_1(preds_1,labels_1)
         preds_1=preds_1.softmax(dim=1)
         
-        loss=loss_0+loss_1
+        loss=loss_0*0.5+loss_1*0.5
         try:
             metric_value0=metric0(preds_0,labels0)
             metric_value1=metric1(preds_1,labels_1)

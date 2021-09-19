@@ -59,15 +59,16 @@ class DataModule(LightningDataModule):
         if self.dataset_enum == Dataset.elementos_presentes:
             self.dataset=ElementsLoader
             self.in_chans=3
-
+            self.num_class=5
         elif self.dataset_enum == Dataset.fondos:
             self.dataset=FondosLoader
-
+            self.num_class=4
                 
         elif self.dataset_enum==Dataset.elementos_and_fondos:
             self.dataset=[FondosLoaderToCombine,ElementsLoaderToCombine]
             self.datasets_enums=[Dataset.fondos,Dataset.elementos_presentes]
-            
+            self.num_class=[5,4]
+
     def prepare_data(self):
      
         

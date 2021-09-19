@@ -16,7 +16,7 @@ import wandb
 from builders import build_dataset, get_callbacks, get_trainer,get_system,get_transforms
 from config import CONFIG, create_config_dict
 import pandas as pd
-
+import numpy as np
 ##code to run cd /home/dcast/adversarial_project ; /usr/bin/env /home/dcast/anaconda3/envs/deep_learning_torch/bin/python  -- /home/dcast/adversarial_project/openml/train.py
 def apply_train_test():
     def get_new_system_and_do_training_and_test(config,data_module,wandb_logger,callbacks,num_repeat=None,num_fold=None,run_test:bool=False):
@@ -24,6 +24,7 @@ def apply_train_test():
 
         # test_dataloader=data_module.test_dataloader()
         #create trainer
+        callbacks[1].best_score=torch.tensor(np.Inf)
         trainer=get_trainer(wandb_logger,callbacks,config)
         
         # model=autotune_lr(trainer,model,data_module,get_auto_lr=config.AUTO_LR)

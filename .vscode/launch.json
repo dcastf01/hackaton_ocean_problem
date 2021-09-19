@@ -11,6 +11,15 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Python: main_dino",
+            "type": "python",
+            "request": "launch",
+            "program": "dino/main_dino.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--help"]
         }
     ]
 }

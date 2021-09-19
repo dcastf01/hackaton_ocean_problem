@@ -17,7 +17,15 @@ class ModelsAvailable(Enum):
     tf_efficientnet_b4="tf_efficientnet_b4"
     tf_efficientnet_b4_ns="tf_efficientnet_b4_ns"
     tf_efficientnet_b7="tf_efficientnet_b7"
-    xcitS="checkpoints/xcit_small_24_p16_224_dist.pth"
+    cait_m48_448="cait_m48_448"
+    xcits="checkpoints/xcit_small_24_p16_224_dist.pth"
+    dino_xcit_medium_24_p16='dino_xcit_medium_24_p16'
+    dino_vits8="dino_vits8" #pues batch de 6 como mucho
+    vit_base_patch16_224_miil_in21k="vit_base_patch16_224_miil_in21k"
+    vit_base_patch16_384="vit_base_patch16_384"
+    
+    
+    
     
 class Dataset (Enum):
     elementos_presentes="ocean_elements"
@@ -40,6 +48,7 @@ class AvailableTransforms(Enum):
     p600_50_0_40_none=4
     p448_50_30_40_rand=5
     p448_50_30_70_rand=6
+    p384_50_30_40_rand=7
     
 @dataclass
 class CONFIG(object):
@@ -56,8 +65,8 @@ class CONFIG(object):
     transforms_target=AvailableTransforms.p448_50_30_40_rand
     transforms_name:str=transforms_target.name
     #torch config
-    batch_size:int = 49
-    dataset=Dataset.fondos
+    batch_size:int = 40
+    dataset=Dataset.elementos_presentes
     dataset_name:str=dataset.name
     precision_compute:int=16
     optim=Optim.adam
@@ -72,10 +81,11 @@ class CONFIG(object):
     NUM_WORKERS:int = 4
     SEED:int=1
     # IMG_SIZE:int=28
-    NUM_EPOCHS :int= 50
+    NUM_EPOCHS :int= 75
     LOAD_MODEL :bool= False
     SAVE_MODEL :bool= False
     PATH_CHECKPOINT: str= os.path.join(ROOT_WORKSPACE,"/model/checkpoint")
+    checkpoint_name:str=experiment.value
 
     callback_plot_latent_space:bool=False
     callback_matrix_wandb:bool=False
@@ -84,10 +94,10 @@ class CONFIG(object):
     
     gpu0:bool=False  
     gpu1:bool=True
-    notes:str="final experiments"
+    notes:str=""
     
-    version:int=3
-    #en la versión 3 se ha añadido un transform al dataset de validación ya que se usaba el de entrenamiento
+    version:int=4
+    #Iniciando el poner Dino
     
 
 def create_config_dict(instance:CONFIG):

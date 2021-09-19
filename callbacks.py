@@ -184,7 +184,7 @@ class PlotLatentSpace(Callback):
         filenames = []
         labels=[]
         rng=np.random.default_rng()
-        classes_selected=np.array(list(range(0,198,10))    )
+        classes_selected=np.array(list(range(0,10,1))    )
         # disable gradients for faster calculations
         pl_module.eval()
         with torch.no_grad():

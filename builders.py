@@ -13,7 +13,7 @@ from callbacks import  SplitDatasetWithKFoldStrategy,ConfusionMatrix,PlotLatentS
 from datamodule import DataModule
 from config import CONFIG, Dataset,TargetModel,AvailableTransforms
 from timm.data.transforms_factory import transforms_imagenet_train,transforms_imagenet_eval
-
+from _utils import load_system
 def build_dataset(root_path:str,dataset_name:str=CONFIG.dataset_name,
                   batch_size:int=CONFIG.batch_size,transform_fn_train=None,transform_fn_val=None):
     
@@ -57,18 +57,19 @@ def get_transforms(transforms_name:str):
             color_jitter=color_jitter,
             auto_augment=auto_augment,  
         )
-        transform_val=transforms_imagenet_eval(
+        
+    else:
+        transform_train=None
+    transform_val=transforms_imagenet_eval(
             img_size=img_size,
         )
-    else:
-        raise NotImplementedError
     return transform_train,transform_val
 def get_callbacks(config:CONFIG,dm,only_train_and_test=False):
     #callbacks
     
     early_stopping=EarlyStopping(monitor='_val_loss',
                                  mode="min",
-                                patience=10,
+                                patience=7,
                                  verbose=True,
                                  check_finite =True
                                  )
@@ -120,36 +121,42 @@ def get_callbacks(config:CONFIG,dm,only_train_and_test=False):
 def get_system(config:CONFIG,dm,num_fold=0,num_repeat=0):
     dataset_name=config.dataset_name
     dataset_enum=Dataset[dataset_name]
-    if hasattr(dm.data_train.dataset,"datasets"):
-        num_class=[len(dm.data_train.dataset.datasets[0].classes),len(dm.data_train.dataset.datasets[1].classes)]
+    num_class=dm.num_class
+    # if hasattr(dm.data_train.dataset,"datasets"):
+    #     num_class=dm.num_class
+    # else:
+            
+    #     num_class=len(dm.data_train.dataset.classes)
+    if config.LOAD_MODEL:
+        
+        load_system(config.checkpoint_name)
     else:
+       
+        if config.target_name==TargetModel.classifier_model_standar.name:
+            
+            system=LitClassifier(
+                model_name=config.experiment_name,
+                lr=config.lr,
+                optim=config.optim_name,
+                in_chans=dm.in_chans,
+                num_class=num_class,
+                num_fold=num_fold,
+                num_repeat=num_repeat
+                                )
         
-        num_class=len(dm.data_train.dataset.classes)
-    if config.target_name==TargetModel.classifier_model_standar.name:
-        
-        system=LitClassifier(
-            model_name=config.experiment_name,
-            lr=config.lr,
-            optim=config.optim_name,
-            in_chans=dm.in_chans,
-            num_class=num_class,
-            num_fold=num_fold,
-            num_repeat=num_repeat
-                             )
-    
-    elif config.target_name==TargetModel.classifier_model_two_in_one.name and dataset_enum==Dataset.elementos_and_fondos:
-        system=LitClassifierTwoInOne(
-            model_name=config.experiment_name,
-            lr=config.lr,
-            optim=config.optim_name,
-            in_chans=dm.in_chans,
-            num_class=num_class,
-            num_fold=num_fold,
-            num_repeat=num_repeat
-                             )
-    else:
-        
-        raise "algo raro, probablemente seleccionaste los dos dataset"   
+        elif config.target_name==TargetModel.classifier_model_two_in_one.name and dataset_enum==Dataset.elementos_and_fondos:
+            system=LitClassifierTwoInOne(
+                model_name=config.experiment_name,
+                lr=config.lr,
+                optim=config.optim_name,
+                in_chans=dm.in_chans,
+                num_class=num_class,
+                num_fold=num_fold,
+                num_repeat=num_repeat
+                                )
+        else:
+            
+            raise "algo raro, probablemente seleccionaste los dos dataset"   
     return system
 
 def get_trainer(wandb_logger,callbacks,config):
