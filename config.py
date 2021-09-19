@@ -53,7 +53,7 @@ class AvailableTransforms(Enum):
 @dataclass
 class CONFIG(object):
     
-    experiment=ModelsAvailable.tf_efficientnet_b4_ns
+    experiment=ModelsAvailable.cait_m48_448
     experiment_name:str=experiment.name
     # experiment_net:str=experiment.value
     PRETRAINED_MODEL:bool=True
@@ -65,7 +65,7 @@ class CONFIG(object):
     transforms_target=AvailableTransforms.p448_50_30_40_rand
     transforms_name:str=transforms_target.name
     #torch config
-    batch_size:int = 40
+    batch_size:int = 25
     dataset=Dataset.elementos_presentes
     dataset_name:str=dataset.name
     precision_compute:int=16

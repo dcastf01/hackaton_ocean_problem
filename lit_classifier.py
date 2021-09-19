@@ -7,7 +7,7 @@ from config import  ModelsAvailable
 from lit_system import LitSystem
 from metrics import get_metrics_collections_base
 from timm.models.layers.classifier import create_classifier
-from image_classification.models import get_model
+
 from factory_model import FacebookModels
 class LitClassifier(LitSystem):
     
@@ -85,12 +85,11 @@ class LitClassifier(LitSystem):
                                         num_classes=0,
                                         **extras
                                         )
-        elif model_enum==ModelsAvailable.xcits:
-            self.model=get_model( "XciT","S",
-                                 pretrained="checkpoints/xcit_small_24_p16_224_dist.pth",
-                                 image_size=448)
+
         elif model_enum.name[0:4]==ModelsAvailable.dino_xcit_medium_24_p16.name[0:4]:
             self.model=FacebookModels(num_class=num_class,name_model=model_enum.value)
+        
+
 class LitClassifierTwoInOne(LitClassifier):
     
     def __init__(self, 
